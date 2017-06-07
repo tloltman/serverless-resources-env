@@ -157,7 +157,7 @@ class ServerlessResourcesEnv {
                 resolve(self.fetchCFResourcesPages(
                     stackName,
                     resourceResultPage.NextToken,
-                    allSummaries
+                    allSummaries,
                 ));
               }
             } else {
