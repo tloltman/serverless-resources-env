@@ -131,8 +131,35 @@ class ServerlessResourcesEnv {
   fetchCFResources() {
     const stackName = this.getStackName();
     this.serverless.cli.log(`[serverless-resources-env] Looking up resources for CF Named: ${stackName}`);
-    return Promise.promisify(this.cloudFormation.describeStackResources.bind(this.cloudFormation))({
-      StackName: stackName,
+    return this.fetchCFResourcesPages(stackName, null, []);
+  }
+
+  /**
+   * Recursively look up the CF Resource pages for this stack from AWS
+   * and concatenate the resource pages
+   * @returns {Promise.<String>}
+   */
+  fetchCFResourcesPages(stackName, nextToken, resourceSummaries) {
+    var self = this;
+    return new Promise((resolve, reject) => {
+      self.cloudFormation.listStackResources(
+          {StackName: stackName, NextToken: nextToken},
+          (err, resourceResultPage) => {
+            if (err == null) {
+              if (resourceResultPage.NextToken == null) {
+                var results = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
+                self.serverless.cli.log(`[serverless-resources-env] Returned ${results.length} ResourceSummaries`);
+                resolve({ ResourceSummaries: results });
+              } else {
+                self.serverless.cli.log(`[serverless-resources-env] Getting next Resources page`);
+                resourceSummaries = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
+                resolve(self.fetchCFResourcesPages(stackName, resourceResultPage.NextToken, resourceSummaries));
+              }
+            } else {
+              reject(err);
+            }
+          }
+      );
     });
   }
 
