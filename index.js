@@ -140,25 +140,25 @@ class ServerlessResourcesEnv {
    * @returns {Promise.<String>}
    */
   fetchCFResourcesPages(stackName, nextToken, resourceSummaries) {
-    var self = this;
+    let self = this;
     return new Promise((resolve, reject) => {
       self.cloudFormation.listStackResources(
-          {StackName: stackName, NextToken: nextToken},
+          { StackName: stackName, NextToken: nextToken },
           (err, resourceResultPage) => {
             if (err == null) {
               if (resourceResultPage.NextToken == null) {
-                var results = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
+                let results = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
                 self.serverless.cli.log(`[serverless-resources-env] Returned ${results.length} ResourceSummaries`);
-                resolve({ ResourceSummaries: results });
+                resolve({ StackResources: results });
               } else {
                 self.serverless.cli.log(`[serverless-resources-env] Getting next Resources page`);
-                resourceSummaries = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
-                resolve(self.fetchCFResourcesPages(stackName, resourceResultPage.NextToken, resourceSummaries));
+                let allSummaries = resourceSummaries.concat(resourceResultPage.StackResourceSummaries);
+                resolve(self.fetchCFResourcesPages(stackName, resourceResultPage.NextToken, allSummaries));
               }
             } else {
               reject(err);
             }
-          }
+          },
       );
     });
   }
