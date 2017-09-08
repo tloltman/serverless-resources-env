@@ -131,7 +131,7 @@ describe('serverless-fetch-stack-resource', () => {
       instance.cloudFormation.listStackResources =
           (params, callback) => {
             callback(null, {
-              StackResources: resources,
+              StackResourceSummaries: resources,
             });
           };
 
